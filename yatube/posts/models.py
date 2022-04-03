@@ -71,20 +71,40 @@ class Comment(PublicationModel):
         verbose_name='Автор',
     )
 
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
+
     def __str__(self):
-        return self.text
+        return f'{self.text[:15]} {self.pub_date:%d %b %H:%M}'
 
 
 class Follow(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        blank=True,
         related_name='follower',
         verbose_name='Пользователь',
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        blank=True,
         related_name='following',
         verbose_name='Автор',
     )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_follow'
+            ),
+            models.CheckConstraint(
+                check=~models.Q(user=models.F('author')),
+                name='user_not_author'
+            ),
+        ]
